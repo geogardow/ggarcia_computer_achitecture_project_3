@@ -17,11 +17,6 @@
 #define TRIGGER 12
 #define ECHO 13
 
-long time;
-long distance;
-
-bool run = true;
-
 void moveForward(){
   digitalWrite(UPPER_LEFT_0, HIGH);
   digitalWrite(UPPER_RIGHT_0, HIGH);
@@ -93,32 +88,31 @@ void setup() {
   digitalWrite(TRIGGER, LOW);
 }
 
-void checkObstacle(){
+bool checkObstacle(){
+  long time;
+  long distance;
 
   digitalWrite(TRIGGER, HIGH);
-  delayMicroseconds(10);          //Enviamos un pulso de 10us
+  delayMicroseconds(1);          //Enviamos un pulso de 10us
   digitalWrite(TRIGGER, LOW);
-  
+
   time = pulseIn(ECHO, HIGH); //obtenemos el ancho del pulso
+
+  
   distance = time/59;         //escalamos el tiempo a una distancia en cm
 
-  if (distance > 10){
-    run = true;
+  if (distance > 5){
+    return true;
   } else {
-    run = false;
+    return false;
   }
 }
 
 void loop() {
-  if (run == true){
+  if (checkObstacle()){
     moveForward();
-    checkObstacle();
   } else {
     moveBackward();
-    checkObstacle();
-    //moveBackward();
-    //delay(3000);
-    //run = true;
   }
 }
 
