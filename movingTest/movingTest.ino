@@ -14,6 +14,14 @@
 #define LOWER_RIGHT_0 6
 #define LOWER_RIGHT_1 7
 
+#define TRIGGER 12
+#define ECHO 13
+
+long time;
+long distance;
+
+bool run = true;
+
 void moveForward(){
   digitalWrite(UPPER_LEFT_0, HIGH);
   digitalWrite(UPPER_RIGHT_0, HIGH);
@@ -58,8 +66,18 @@ void moveLeft(){
   digitalWrite(LOWER_RIGHT_1, LOW);
 }
 
+void stop(){
+  digitalWrite(UPPER_LEFT_0, LOW);
+  digitalWrite(UPPER_RIGHT_0, LOW);
+  digitalWrite(LOWER_LEFT_0, LOW);
+  digitalWrite(LOWER_RIGHT_0, LOW);
+  digitalWrite(UPPER_LEFT_1, LOW);
+  digitalWrite(UPPER_RIGHT_1, LOW);
+  digitalWrite(LOWER_LEFT_1, LOW);
+  digitalWrite(LOWER_RIGHT_1, LOW);
+}
+
 void setup() {
-  // put your setup code here, to run once:
   Serial.begin(115200);
   pinMode(UPPER_LEFT_0, OUTPUT);
   pinMode(UPPER_LEFT_1, OUTPUT);
@@ -69,14 +87,39 @@ void setup() {
   pinMode(LOWER_LEFT_1, OUTPUT);
   pinMode(LOWER_RIGHT_0, OUTPUT);
   pinMode(LOWER_RIGHT_1, OUTPUT);
+
+  pinMode(TRIGGER, OUTPUT);
+  pinMode(ECHO, INPUT);
+  digitalWrite(TRIGGER, LOW);
+}
+
+void checkObstacle(){
+
+  digitalWrite(TRIGGER, HIGH);
+  delayMicroseconds(10);          //Enviamos un pulso de 10us
+  digitalWrite(TRIGGER, LOW);
+  
+  time = pulseIn(ECHO, HIGH); //obtenemos el ancho del pulso
+  distance = time/59;         //escalamos el tiempo a una distancia en cm
+
+  if (distance > 10){
+    run = true;
+  } else {
+    run = false;
+  }
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-  moveForward();
-  delay(3000);
-  moveBackward();
-  delay(3000);
+  if (run == true){
+    moveForward();
+    checkObstacle();
+  } else {
+    moveBackward();
+    checkObstacle();
+    //moveBackward();
+    //delay(3000);
+    //run = true;
+  }
 }
 
 
