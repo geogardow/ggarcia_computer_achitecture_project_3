@@ -14,6 +14,9 @@
 #define LOWER_RIGHT_0 6
 #define LOWER_RIGHT_1 7
 
+#define LINE_RIGHT 8
+#define LINE_LEFT 9
+
 #define TRIGGER 12
 #define ECHO 13
 
@@ -88,6 +91,41 @@ void setup() {
   digitalWrite(TRIGGER, LOW);
 }
 
+void followLine(){
+  int followerR, followerL;
+
+  followerR = digitalRead (LINE_RIGHT);
+  followerL = digitalRead (LINE_LEFT);
+
+  if ((followerR == 0)& (followerL == 0)) // FORWARD - AVANZAR HACIA DELANTE
+  {
+    moveForward();
+  }
+
+  if ((followerR == 0)& (followerL == 1)) //RIGHT - DERECHA
+  {
+    moveRight();
+  }
+
+  if ((followerR == 1)& (followerL == 0)) //LEFT - IZQUIERDA
+  {
+    moveLeft();
+  }
+
+  if ((followerR == 1)& (followerL == 1)) //BACK - ATRÁS
+  {
+    moveBackward();
+  }
+}
+
+void skipObstacle(){
+  moveBackward();
+  delay(500);
+  moveRight();
+  delay(500);
+  stop();
+}
+
 bool checkObstacle(){
   long time;
   long distance;
@@ -97,11 +135,10 @@ bool checkObstacle(){
   digitalWrite(TRIGGER, LOW);
 
   time = pulseIn(ECHO, HIGH); //obtenemos el ancho del pulso
-
   
   distance = time/59;         //escalamos el tiempo a una distancia en cm
 
-  if (distance > 5){
+  if (distance > 25){
     return true;
   } else {
     return false;
@@ -112,7 +149,7 @@ void loop() {
   if (checkObstacle()){
     moveForward();
   } else {
-    moveBackward();
+    skipObstacle();
   }
 }
 
