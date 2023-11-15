@@ -210,10 +210,13 @@ bool checkObstacle(){
 }
 
 void loop() {
-  controll.run();
-  if (START_FLAG){
+  //controll.run();
+  //if (START_FLAG){
+  if (true){
     if (checkObstacle()){
-      followLine();
+    //if (true){
+      //followLine();
+      moveForward();
     } else {
       skipObstacle();
     }
