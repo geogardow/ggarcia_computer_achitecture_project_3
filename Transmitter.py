@@ -1,10 +1,10 @@
 import socket
 
-udp_ip = "186.4.53.160"  # Use 0.0.0.0 to bind to all available interfaces
-udp_port = 12345
+udp_ip = "192.168.44.23"  # Use 0.0.0.0 to bind to all available interfaces
+udp_port = 8888
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-sock.connect((udp_ip, udp_port))
+sock.bind((udp_ip, udp_port))
 
 print("Listening on {}:{}".format(udp_ip, udp_port))
 
