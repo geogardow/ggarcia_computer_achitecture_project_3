@@ -1,6 +1,6 @@
 import socket
 
-udp_ip = "192.168.44.23"  # Use 0.0.0.0 to bind to all available interfaces
+udp_ip = "192.168.44.15"  # Use 0.0.0.0 to bind to all available interfaces
 udp_port = 8888
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

@@ -1,0 +1,16 @@
+SPACING         =   5
+RATIO           =   1.5
+WIDTH_R         =   1920
+HEIGHT_R        =   1080
+WIDTH           =   int(WIDTH_R//RATIO)
+HEIGHT          =   int(HEIGHT_R//RATIO)
+BTNDIMENSION    =   100
+TOPHEIGHT       =   30
+TOOLBARWIDTH    =   int(WIDTH//7.7)
+POPWIDTH        =   650
+POPHEIGHT       =   450
+MSGWIDTH        =   650
+MSGHEIGHT       =   200
+ITEMHEIGH       =   40
+TABLEWIDTH      =   845
+TABLEHEIGHT     =   360

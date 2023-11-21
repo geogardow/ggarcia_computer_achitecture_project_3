@@ -7,22 +7,21 @@
 #include <Thread.h>
 #include <ThreadController.h>
 #include <SoftwareSerial.h>
+#include <WiFi.h>
+#include <WiFiUdp.h>
 
-
-
-/*
 ThreadController controll = ThreadController();
 Thread* myThread = new Thread();
 
+const char *ssid = "Diani y Rei";
+const char *password = "Direi0810";
+const int udpPort = 8888; // Choose a port number
+const char *udpIP = "192.168.44.15";
 
-SoftwareSerial serial_connection(10 , 11);//Create a serial connection with TX and RX on these pins
-#define BUFFER_SIZE 64//This will prevent buffer overruns.
-char inData[BUFFER_SIZE];//This is a character buffer where the data sent by the python script will go.
-char inChar=-1;//Initialie the first character as nothing
-int count=0;//This is the number of lines sent in from the python script
-int i=0;//Arduinos are not the most capable chips in the world so I just create the looping variable once
-*/
+bool AUTOFLAG = false;
+char DIRECTION;
 
+WiFiUDP udp;
 
 #define UPPER_LEFT_0 0
 #define UPPER_LEFT_1 1
@@ -38,9 +37,6 @@ int i=0;//Arduinos are not the most capable chips in the world so I just create 
 
 #define TRIGGER 12
 #define ECHO 13
-
-bool START_FLAG = false;
-
 
 void moveForward(){
   digitalWrite(UPPER_LEFT_0, HIGH);
@@ -96,50 +92,51 @@ void stop(){
   digitalWrite(LOWER_LEFT_1, LOW);
   digitalWrite(LOWER_RIGHT_1, LOW);
 }
-/*
-void bluetoothConection(){
-  //This will prevent bufferover run errors
-  byte byte_count=serial_connection.available();//This gets the number of bytes that were sent by the python script
-  if(byte_count)//If there are any bytes then deal with them
-  {
-    Serial.println("Incoming Data");//Signal to the monitor that something is happening
-    int first_bytes=byte_count;//initialize the number of bytes that we might handle.
-    int remaining_bytes=0;//Initialize the bytes that we may have to burn off to prevent a buffer overrun
-    if(first_bytes>=BUFFER_SIZE-1)//If the incoming byte count is more than our buffer...
-    {
-      remaining_bytes=byte_count-(BUFFER_SIZE-1);//Reduce the bytes that we plan on handleing to below the buffer size
-    }
-    for(i=0;i<first_bytes;i++)//Handle the number of incoming bytes
-    {
-      inChar=serial_connection.read();//Read one byte
-      inData[i]=inChar;//Put it into a character string(array)
-    }
-    inData[i]='\0';//This ends the character array with a null character. This signals the end of a string
 
+void wifiConection(){
+  sendData("Hello from ESP32!");
 
-    //We have read, here we add the options
-    if(String(inData)=="START")//From Python script Turn LED ON when transmission starts
-    {
-      Serial.println("********* Transmission Started *********");
-      START_FLAG = true;
+  receiveData();
+
+  delay(100);
+
+}
+
+void sendData(const char *data) {
+  udp.beginPacket(udpIP, udpPort); // Replace with the IP of your Python script
+  udp.print(data);
+  udp.endPacket();
+}
+
+void receiveData() {
+  int packetSize = udp.parsePacket();
+  if (packetSize) {
+    char packetBuffer[packetSize + 1];
+    udp.read(packetBuffer, packetSize);
+    packetBuffer[packetSize] = '\0';
+    if (packetBuffer[0] == '1'){
+        AUTOFLAG = false;
+    } else if (packetBuffer[0] == '0'){
+        AUTOFLAG = true;
+    } else {
+        DIRECTION = packetBuffer[0];
     }
-    else if(String(inData)=="STOP")//Turn OFF LED when transmission Stops
-    {
-      Serial.println("********* Transmission Ended *********");
-      START_FLAG = false;
-    }
-    for(i=0;i<remaining_bytes;i++)//This burns off any remaining bytes that the buffer can't handle.
-    {
-      inChar=serial_connection.read();
-    }
-    Serial.println(inData);//Print to the monitor what was detected
-    serial_connection.println("Bluetooth answers "+String(count)+": "+inData+" received");//Then send an incremented string back to the python script
-    count++;//Increment the line counter
   }
 }
 
-*/
 void setup() {
+  Serial.begin(115200);
+
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    Serial.println("Connecting to WiFi...");
+  }
+  Serial.println("Connected to WiFi");
+
+  // Initialize UDP
+  udp.begin(udpPort);
+
   pinMode(UPPER_LEFT_0, OUTPUT);
   pinMode(UPPER_LEFT_1, OUTPUT);
   pinMode(UPPER_RIGHT_0, OUTPUT);
@@ -150,24 +147,13 @@ void setup() {
   pinMode(LOWER_RIGHT_1, OUTPUT);
   pinMode(TRIGGER, OUTPUT);
 
-
   pinMode(LINE_RIGHT, INPUT);
   pinMode(LINE_LEFT, INPUT);
   pinMode(ECHO, INPUT);
   digitalWrite(TRIGGER, LOW);
 
-/*
-
-
-  Serial.begin(9600);//Initialize communications to the serial monitor in the Arduino IDE
-  serial_connection.begin(9600);//Initialize communications with the bluetooth module
-  serial_connection.println("Ready!!!");//Send something to just start comms. This will never be seen.
-  Serial.println("Started");//Tell the serial monitor that the sketch has started.
-
-  myThread->onRun(bluetoothConection);
-  myThread->setInterval(100);
+  myThread->onRun(wifiConection);
   controll.add(myThread);
-*/
 
 }
 
@@ -198,19 +184,11 @@ void followLine(){
     moveBackward();
 
   }
-}
-
-void skipObstacle(){
-  moveBackward();
-  delay(500);
-  moveRight();
-  delay(500);
+  delay(75);
   stop();
+  delay(150);
 }
 
-void stopWhenObstacle(){
-  stop(); // La idea es que se reanude con el control remoto
-}
 
 bool checkObstacle(){
   long time;
@@ -233,12 +211,29 @@ bool checkObstacle(){
 
 
 void loop() {
-  if(checkObstacle()){
-    followLine();
+  controll.run();
+  if(AUTOFLAG){
+    if(checkObstacle()){
+      followLine();
+      }
+    else{
+      stop();
+      }
+  } else {
+    if(DIRECTION == '2'){
+      moveForward();
+    } else if(DIRECTION == '3'){
+      moveBackward();
+    } else if(DIRECTION == '4'){
+      moveLeft();
+    } else if(DIRECTION == '5'){
+      moveRight();
+    } else if(DIRECTION == '9'){
+      stop();
     }
-  else{
-    stopWhenObstacle();
-    }
+
+  }
+  
   }
 
 

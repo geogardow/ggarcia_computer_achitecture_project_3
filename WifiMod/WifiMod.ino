@@ -38,7 +38,7 @@ void loop() {
 }
 
 void sendData(const char *data) {
-  udp.beginPacket("192.168.44.23", udpPort); // Replace with the IP of your Python script
+  udp.beginPacket("192.168.44.15", udpPort); // Replace with the IP of your Python script
   udp.print(data);
   udp.endPacket();
 }
