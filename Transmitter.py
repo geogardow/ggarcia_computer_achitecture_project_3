@@ -1,34 +1,19 @@
-import serial
-import time
+import socket
 
-print("Start")
-port="COM5" #This will be different for various devices and on windows it will probably be a COM port.
-bluetooth=serial.Serial(port, 9600)#Start communications with the bluetooth unit
-print("Connected")
-bluetooth.flushInput() #This gives the bluetooth a little kick
+udp_ip = "186.4.53.160"  # Use 0.0.0.0 to bind to all available interfaces
+udp_port = 12345
 
-"""
-for i in range(5): #send 5 groups of data to the bluetooth
-    if i == 0:
-        bluetooth.write(b"START")  # START
-    else:
-        bluetooth.write(b"DATA "+str.encode(str(i)))#These need to be bytes not unicode, plus a number
-    input_data=bluetooth.readline()#This reads the incoming data. In this particular example it will be the "Bluetooth answers" line
-    print(input_data.decode())#These are bytes coming in so a decode is needed
-    time.sleep(0.1) #A pause between bursts
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+sock.connect((udp_ip, udp_port))
 
-bluetooth.write(b"STOP") #STOP, but no answer back from Bluetooth will be printed by python
-"""
-message = "start"
+print("Listening on {}:{}".format(udp_ip, udp_port))
+
 while True:
-    text = input(str(message))
-    if text == "":
-        bluetooth.write(b"START")
-        message = "Any to stop: "
-    else:
-        bluetooth.write(b"STOP")
-        bluetooth.close() #Otherwise the connection will remain open until a timeout which ties up the /dev/thingamabob
-        print("Done")
+    data, addr = sock.recvfrom(1024)  # Buffer size is 1024 bytes
+    print("Received message from ESP32: '{}' from {}".format(data.decode("utf-8"), addr))
 
+    # Process the received data as needed
 
-
+    # Send data to ESP32
+    message = input("Enter message to send to ESP32: ")
+    sock.sendto(message.encode("utf-8"), addr)

@@ -35,7 +35,6 @@ int i=0;//Arduinos are not the most capable chips in the world so I just create 
 
 #define LINE_RIGHT 23
 #define LINE_LEFT 15
-#define out 8
 
 #define TRIGGER 12
 #define ECHO 13
@@ -149,7 +148,6 @@ void setup() {
   pinMode(LOWER_LEFT_1, OUTPUT);
   pinMode(LOWER_RIGHT_0, OUTPUT);
   pinMode(LOWER_RIGHT_1, OUTPUT);
-  pinMode(out, OUTPUT);
   pinMode(TRIGGER, OUTPUT);
 
 
